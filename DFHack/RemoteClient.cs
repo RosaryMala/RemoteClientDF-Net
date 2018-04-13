@@ -88,7 +88,7 @@ namespace DFHack
             if (_pDefaultOutput == null)
             {
                 _deleteOutput = true;
-                _pDefaultOutput = new ColorOstream();
+                _pDefaultOutput = new ConsoleDFStream();
             }
             else
                 _deleteOutput = false;
