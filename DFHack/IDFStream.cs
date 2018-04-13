@@ -1,8 +1,8 @@
-﻿namespace RemoteClientDF
+﻿namespace DFHack
 {
     public interface IDfStream
     {
-        void Printerr(string format, params object[] parameters);
+        void PrintErr(string format, params object[] parameters);
         void Print(string format, params object[] parameters);
         void BeginBatch();
         void EndBatch();
