@@ -140,14 +140,12 @@ namespace DFHack
                 }
                 catch (SocketException e)
                 {
-                    UnityEngine.Debug.LogException(e);
                     // Often thrown if DF is inactive.
                     continue;
                 }
 
                 if (tempSocket.Connected)
                 {
-                    UnityEngine.Debug.Log("Connected to " + address + ":" + port);
                     s = tempSocket;
                     break;
                 }
