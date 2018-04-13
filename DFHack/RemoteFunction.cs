@@ -1,7 +1,7 @@
 using dfproto;
 using ProtoBuf;
 
-namespace RemoteClientDF
+namespace DFHack
 {
     public class RemoteFunction<TInput> : RemoteFunctionBase
         where TInput : class, IExtensible, new()
@@ -21,32 +21,32 @@ namespace RemoteClientDF
 
         public RemoteFunction() : base(new TInput(), new EmptyMessage()) { }
 
-        public CommandResult Execute()
+        public CommandResult TryExecute()
         {
             if (PClient == null)
                 return CommandResult.CrNotImplemented;
             EmptyMessage empty;
-            return base.Execute(DefaultOstream, Input, out empty);
+            return base.TryExecute(DefaultOstream, Input, out empty);
         }
-        public CommandResult Execute(IDfStream stream)
+        public CommandResult TryExecute(IDFStream stream)
         {
             EmptyMessage empty;
-            return base.Execute(stream, Input, out empty);
+            return base.TryExecute(stream, Input, out empty);
         }
-        public CommandResult Execute(TInput input)
+        public CommandResult TryExecute(TInput input)
         {
             if (PClient == null)
                 return CommandResult.CrNotImplemented;
             else
             {
                 EmptyMessage empty;
-                return base.Execute(DefaultOstream, input, out empty);
+                return base.TryExecute(DefaultOstream, input, out empty);
             }
         }
-        public CommandResult Execute(IDfStream stream, TInput input)
+        public CommandResult TryExecute(IDFStream stream, TInput input)
         {
             EmptyMessage empty;
-            return base.Execute(stream, input, out empty);
+            return base.TryExecute(stream, input, out empty);
         }
     };
 
@@ -81,26 +81,26 @@ namespace RemoteClientDF
 
         public RemoteFunction() : base(new TInput(), new TOutput()) { }
 
-        public CommandResult Execute()
+        public CommandResult TryExecute()
         {
             if (PClient == null)
                 return CommandResult.CrNotImplemented;
             else
             {
                 TOutput tempOut;
-                CommandResult result = base.Execute(DefaultOstream, Input, out tempOut);
+                CommandResult result = base.TryExecute(DefaultOstream, Input, out tempOut);
                 Output = tempOut;
                 return result;
             }
         }
-        public CommandResult Execute(IDfStream stream)
+        public CommandResult TryExecute(IDFStream stream)
         {
             TOutput tempOut;
-            CommandResult result = base.Execute(stream, Input, out tempOut);
+            CommandResult result = base.TryExecute(stream, Input, out tempOut);
             Output = tempOut;
             return result;
         }
-        public CommandResult Execute(TInput input, out TOutput output)
+        public CommandResult TryExecute(TInput input, out TOutput output)
         {
             if (PClient == null)
             {
@@ -109,12 +109,20 @@ namespace RemoteClientDF
             }
             else
             {
-                return base.Execute(DefaultOstream, input, out output);
+                return base.TryExecute(DefaultOstream, input, out output);
             }
         }
-        public CommandResult Execute(IDfStream stream, TInput input, out TOutput output)
+        public CommandResult TryExecute(IDFStream stream, TInput input, out TOutput output)
         {
-            return base.Execute(stream, input, out output);
+            return base.TryExecute(stream, input, out output);
+        }
+        public TOutput Execute(TInput input = null)
+        {
+            TOutput output;
+            if (TryExecute(input, out output) == CommandResult.CrOk)
+                return output;
+            else
+                return null;
         }
     }
 }

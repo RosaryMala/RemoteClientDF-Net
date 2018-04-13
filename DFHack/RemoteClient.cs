@@ -30,7 +30,7 @@ using System.Net.Sockets;
 using System.Text;
 using dfproto;
 
-namespace RemoteClientDF
+namespace DFHack
 {
     public class RemoteClient
     {
@@ -52,7 +52,7 @@ namespace RemoteClientDF
             return true;
         }
 
-        public bool Bind(IDfStream outStream, RemoteFunctionBase function,
+        public bool Bind(IDFStream outStream, RemoteFunctionBase function,
                   string name, string proto)
         {
             if (!_active || Socket == null)
@@ -70,7 +70,7 @@ namespace RemoteClientDF
                 input.output_msg = function.POutTemplate.GetType().ToString();
             }
 
-            if (_bindCall.Execute(outStream) != CommandResult.CrOk)
+            if (_bindCall.TryExecute(outStream) != CommandResult.CrOk)
                 return false;
 
             function.Id = (Int16)_bindCall.Output.assigned_id;
@@ -78,7 +78,7 @@ namespace RemoteClientDF
             return true;
         }
 
-        public RemoteClient(IDfStream defaultOutput = null)
+        public RemoteClient(IDFStream defaultOutput = null)
         {
             _pDefaultOutput = defaultOutput;
             _active = false;
@@ -113,7 +113,7 @@ namespace RemoteClientDF
                 return portval;
         }
 
-        public IDfStream DefaultOutput
+        public IDFStream DefaultOutput
         {
             get { return _pDefaultOutput; }
         }
@@ -177,7 +177,7 @@ namespace RemoteClientDF
             Socket = ConnectSocket(server, port);
             if (Socket == null)
             {
-                DefaultOutput.Printerr("Could not connect to %s:%d\n", server, port);
+                DefaultOutput.PrintErr("Could not connect to %s:%d\n", server, port);
                 return false;
             }
 
@@ -192,7 +192,7 @@ namespace RemoteClientDF
 
             if (Socket.Send(header) != header.Length)
             {
-                DefaultOutput.Printerr("Could not send handshake header.\n");
+                DefaultOutput.PrintErr("Could not send handshake header.\n");
                 Socket.Close();
                 Socket = null;
                 return _active = false;
@@ -200,7 +200,7 @@ namespace RemoteClientDF
 
             if (!ReadFullBuffer(Socket, header, header.Length))
             {
-                DefaultOutput.Printerr("Could not read handshake header.\n");
+                DefaultOutput.PrintErr("Could not read handshake header.\n");
                 Socket.Close();
                 Socket = null;
                 return _active = false;
@@ -209,7 +209,7 @@ namespace RemoteClientDF
             if (!PartialArrayCompare(header, Encoding.ASCII.GetBytes(RpcHandshakeHeader.ResponseMagic)) ||
                 BitConverter.ToInt32(header, Encoding.ASCII.GetBytes(RpcHandshakeHeader.ResponseMagic).Length) != 1)
             {
-                DefaultOutput.Printerr("Invalid handshake response: %s.\n", Encoding.Default.GetString(header));
+                DefaultOutput.PrintErr("Invalid handshake response: %s.\n", Encoding.Default.GetString(header));
                 Socket.Close();
                 Socket = null;
                 return _active = false;
@@ -236,7 +236,7 @@ namespace RemoteClientDF
                 header.Id = (Int16)DfHackReplyCode.RpcRequestQuit;
                 header.Size = 0;
                 if (Socket.Send(header.ConvertToBtyes()) != header.ConvertToBtyes().Length)
-                    DefaultOutput.Printerr("Could not send the disconnect message.\n");
+                    DefaultOutput.PrintErr("Could not send the disconnect message.\n");
                 Socket.Close();
             }
             Socket = null;
@@ -247,11 +247,11 @@ namespace RemoteClientDF
         {
             return RunCommand(DefaultOutput, cmd, args);
         }
-        public CommandResult RunCommand(IDfStream output, string cmd, List<string> args)
+        public CommandResult RunCommand(IDFStream output, string cmd, List<string> args)
         {
             if (!_active || Socket == null)
             {
-                output.Printerr("In RunCommand: client connection not valid.\n");
+                output.PrintErr("In RunCommand: client connection not valid.\n");
                 return CommandResult.CrFailure;
             }
 
@@ -261,7 +261,7 @@ namespace RemoteClientDF
             foreach (var t in args)
                 _runcmdCall.Input.arguments.Add(t);
 
-            return _runcmdCall.Execute(output);
+            return _runcmdCall.TryExecute(output);
         }
 
         //    // For executing multiple calls in rapid succession.
@@ -278,7 +278,7 @@ namespace RemoteClientDF
                 _resumeCall.Bind(this, "CoreResume");
             }
 
-            if (_suspendCall.Execute(DefaultOutput) == CommandResult.CrOk)
+            if (_suspendCall.TryExecute(DefaultOutput) == CommandResult.CrOk)
                 return _suspendCall.Output.value;
             else
                 return -1;
@@ -288,7 +288,7 @@ namespace RemoteClientDF
             if (!_suspendReady)
                 return -1;
 
-            if (_resumeCall.Execute(DefaultOutput) == CommandResult.CrOk)
+            if (_resumeCall.TryExecute(DefaultOutput) == CommandResult.CrOk)
                 return _resumeCall.Output.value;
             else
                 return -1;
@@ -299,7 +299,7 @@ namespace RemoteClientDF
 
         readonly bool _deleteOutput;
         public Socket Socket;
-        IDfStream _pDefaultOutput;
+        IDFStream _pDefaultOutput;
 
         RemoteFunction<CoreBindRequest, CoreBindReply> _bindCall;
         RemoteFunction<CoreRunCommandRequest> _runcmdCall;

@@ -1,9 +1,9 @@
 using System;
 using ProtoBuf;
 
-namespace RemoteClientDF
+namespace DFHack
 {
-    public class RpcFunctionBase
+    public class RPCFunctionBase
     {
 
         public IExtensible PInTemplate;
@@ -53,7 +53,7 @@ namespace RemoteClientDF
             }
         }
 
-        public RpcFunctionBase(IExtensible input, IExtensible output)
+        public RPCFunctionBase(IExtensible input, IExtensible output)
         {
             PInTemplate = input;
             POutTemplate = output;

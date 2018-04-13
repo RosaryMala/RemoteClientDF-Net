@@ -1,6 +1,6 @@
-﻿namespace RemoteClientDF
+﻿namespace DFHack
 {
-    public class DfStringStream : IDfStream
+    public class DfStringStream : IDFStream
     {
         public string Value { get; private set; }
         public void AddText(ColorValue color, string text)
@@ -21,7 +21,7 @@
             AddText(ColorValue.ColorBlack, string.Format(format, parameters));
         }
 
-        public void Printerr(string format, params object[] parameters)
+        public void PrintErr(string format, params object[] parameters)
         {
             AddText(ColorValue.ColorRed, string.Format(format, parameters));
         }

@@ -1,4 +1,4 @@
-﻿namespace RemoteClientDF
+﻿namespace DFHack
 {
     public struct DfCoord2D
     {

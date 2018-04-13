@@ -5,16 +5,16 @@ using System.Net.Sockets;
 using dfproto;
 using ProtoBuf;
 
-namespace RemoteClientDF
+namespace DFHack
 {
-    public class RemoteFunctionBase : RpcFunctionBase
+    public class RemoteFunctionBase : RPCFunctionBase
     {
         public bool Bind(RemoteClient client, string name,
             string proto = "")
         {
             return Bind(client.DefaultOutput, client, name, proto);
         }
-        public bool Bind(IDfStream output,
+        public bool Bind(IDFStream output,
             RemoteClient client, string name,
             string proto = "")
         {
@@ -23,7 +23,7 @@ namespace RemoteClientDF
                 if (PClient == client && Name == name && Proto == proto)
                     return true;
 
-                output.Printerr("Function already bound to %s::%s\n",
+                output.PrintErr("Function already bound to %s::%s\n",
                     Proto, Name);
                 return false;
             }
@@ -44,7 +44,7 @@ namespace RemoteClientDF
             Id = -1;
         }
 
-        protected IDfStream DefaultOstream
+        protected IDFStream DefaultOstream
         {
             get { return PClient.DefaultOutput; }
         }
@@ -66,13 +66,25 @@ namespace RemoteClientDF
             return (got == fullsz);
         }
 
-        protected CommandResult Execute<TInput, TOutput>(IDfStream outString, TInput input, out TOutput output)
+        protected TOutput Execute<TInput, TOutput>(IDFStream stream, TInput input)
+            where TInput : class, IExtensible, new()
+            where TOutput : class, IExtensible, new()
+        {
+            TOutput value;
+            var result = TryExecute(stream, input, out value);
+            if (result == CommandResult.CrOk)
+                return value;
+            else
+                throw new InvalidOperationException("Remotefunction encountered error: " + value);
+        }
+
+        protected CommandResult TryExecute<TInput, TOutput>(IDFStream outString, TInput input, out TOutput output)
             where TInput : class, IExtensible, new()
             where TOutput : class, IExtensible, new()
         {
             if (!IsValid())
             {
-                outString.Printerr("Calling an unbound RPC function %s::%s.\n",
+                outString.PrintErr("Calling an unbound RPC function %s::%s.\n",
                     Proto, Name);
                 output = default(TOutput);
                 return CommandResult.CrNotImplemented;
@@ -80,7 +92,7 @@ namespace RemoteClientDF
 
             if (PClient.Socket == null)
             {
-                outString.Printerr("In call to %s::%s: invalid socket.\n",
+                outString.PrintErr("In call to %s::%s: invalid socket.\n",
                     Proto, Name);
                 output = default(TOutput);
                 return CommandResult.CrLinkFailure;
@@ -94,7 +106,7 @@ namespace RemoteClientDF
 
             if (sendSize > RpcMessageHeader.MaxMessageSize)
             {
-                outString.Printerr("In call to %s::%s: message too large: %d.\n",
+                outString.PrintErr("In call to %s::%s: message too large: %d.\n",
                     Proto, Name, sendSize);
                 output = default(TOutput);
                 return CommandResult.CrLinkFailure;
@@ -102,7 +114,7 @@ namespace RemoteClientDF
 
             if (!SendRemoteMessage(PClient.Socket, Id, sendStream))
             {
-                outString.Printerr("In call to %s::%s: I/O error in send.\n",
+                outString.PrintErr("In call to %s::%s: I/O error in send.\n",
                     Proto, Name);
                 output = default(TOutput);
                 return CommandResult.CrLinkFailure;
@@ -120,7 +132,7 @@ namespace RemoteClientDF
 
                 if (!RemoteClient.ReadFullBuffer(PClient.Socket, buffer, 8))
                 {
-                    outString.Printerr("In call to %s::%s: I/O error in receive header.\n",
+                    outString.PrintErr("In call to %s::%s: I/O error in receive header.\n",
                         Proto, Name);
                     output = default(TOutput);
                     return CommandResult.CrLinkFailure;
@@ -143,7 +155,7 @@ namespace RemoteClientDF
 
                 if (header.Size < 0 || header.Size > RpcMessageHeader.MaxMessageSize)
                 {
-                    outString.Printerr("In call to %s::%s: invalid received size %d.\n",
+                    outString.PrintErr("In call to %s::%s: invalid received size %d.\n",
                         Proto, Name, header.Size);
                     output = default(TOutput);
                     return CommandResult.CrLinkFailure;
@@ -152,7 +164,7 @@ namespace RemoteClientDF
                 byte[] buf = new byte[header.Size];
                 if (!RemoteClient.ReadFullBuffer(PClient.Socket, buf, header.Size))
                 {
-                    outString.Printerr("In call to %s::%s: I/O error in receive %d bytes of data.\n",
+                    outString.PrintErr("In call to %s::%s: I/O error in receive %d bytes of data.\n",
                         Proto, Name, header.Size);
                     output = default(TOutput);
                     return CommandResult.CrLinkFailure;
@@ -163,7 +175,7 @@ namespace RemoteClientDF
                     case DfHackReplyCode.RpcReplyResult:
                         output = Serializer.Deserialize<TOutput>(new MemoryStream(buf));
                         if (output != null) return CommandResult.CrOk;
-                        outString.Printerr("In call to %s::%s: error parsing received result.\n",
+                        outString.PrintErr("In call to %s::%s: error parsing received result.\n",
                             Proto, Name);
                         return CommandResult.CrLinkFailure;
 
@@ -175,7 +187,7 @@ namespace RemoteClientDF
                             textDecoder.Decode(textData);
                         }
                         else
-                            outString.Printerr("In call to %s::%s: received invalid text data.\n",
+                            outString.PrintErr("In call to %s::%s: received invalid text data.\n",
                                 Proto, Name);
                         break;
                 }

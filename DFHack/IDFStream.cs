@@ -1,6 +1,6 @@
 ﻿namespace DFHack
 {
-    public interface IDfStream
+    public interface IDFStream
     {
         void PrintErr(string format, params object[] parameters);
         void Print(string format, params object[] parameters);

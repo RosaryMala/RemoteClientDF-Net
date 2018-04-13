@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RemoteClientDF
+namespace DFHack
 {
     internal struct RpcMessageHeader
     {

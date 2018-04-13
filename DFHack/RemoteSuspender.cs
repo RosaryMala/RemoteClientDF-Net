@@ -1,4 +1,4 @@
-namespace RemoteClientDF
+namespace DFHack
 {
     internal class RemoteSuspender
     {

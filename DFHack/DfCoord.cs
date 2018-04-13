@@ -1,6 +1,5 @@
-﻿namespace RemoteClientDF
+﻿namespace DFHack
 {
-
     public struct DfCoord
     {
         public readonly int X, Y, Z;
