@@ -1,5 +1,6 @@
 using dfproto;
 using ProtoBuf;
+using System;
 
 namespace DFHack
 {
@@ -20,6 +21,20 @@ namespace DFHack
         }
 
         public RemoteFunction() : base(new TInput(), new EmptyMessage()) { }
+
+        public void Execute()
+        {
+            if (PClient == null)
+                throw new NotImplementedException(); 
+            Execute<TInput, EmptyMessage>(DefaultOstream, Input);
+        }
+
+        public void Execute(TInput input)
+        {
+            if (PClient == null)
+                throw new NotImplementedException();
+            base.Execute<TInput, EmptyMessage>(DefaultOstream, input);
+        }
 
         public CommandResult TryExecute()
         {
@@ -47,6 +62,23 @@ namespace DFHack
         {
             EmptyMessage empty;
             return base.TryExecute(stream, input, out empty);
+        }
+
+        /// <summary>
+        /// Tries to bind an RPC function, leaving returning null if it fails.
+        /// </summary>
+        /// <typeparam name="TInput">Protobuf class used as an input</typeparam>
+        /// <param name="client">Connection to Dwarf Fortress</param>
+        /// <param name="name">Name of the RPC function to bind to</param>
+        /// <param name="proto">Name of the protobuf file to use</param>
+        /// <returns>Bound remote function on success, otherwise null.</returns>
+        public static RemoteFunction<TInput> CreateAndBind(RemoteClient client, string name, string proto = "")
+        {
+            RemoteFunction<TInput> output = new RemoteFunction<TInput>();
+            if (output.Bind(client, name, proto))
+                return output;
+            else
+                return null;
         }
     };
 
@@ -120,6 +152,24 @@ namespace DFHack
         {
             TOutput output;
             if (TryExecute(input, out output) == CommandResult.CrOk)
+                return output;
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Tries to bind an RPC function, returning null if it fails.
+        /// </summary>
+        /// <typeparam name="TInput">Protobuf class used as an input</typeparam>
+        /// <typeparam name="TOutput">Protobuf class to use as an output</typeparam>
+        /// <param name="client">Connection to Dwarf Fortress</param>
+        /// <param name="name">Name of the RPC function to bind to</param>
+        /// <param name="proto">Name of the protobuf file to use</param>
+        /// <returns>Bound remote function on success, otherwise null.</returns>
+        public static RemoteFunction<TInput, TOutput> CreateAndBind(RemoteClient client, string name, string proto = "")
+        {
+            RemoteFunction<TInput, TOutput> output = new RemoteFunction<TInput, TOutput>();
+            if (output.Bind(client, name, proto))
                 return output;
             else
                 return null;
