@@ -72,13 +72,10 @@ namespace DFHack
         /// <param name="name">Name of the RPC function to bind to</param>
         /// <param name="proto">Name of the protobuf file to use</param>
         /// <returns>Bound remote function on success, otherwise null.</returns>
-        public static RemoteFunction<TInput> CreateAndBind(RemoteClient client, string name, string proto = "")
+        public RemoteFunction(RemoteClient client, string name, string proto = ""): base(new TInput(), new EmptyMessage())
         {
-            RemoteFunction<TInput> output = new RemoteFunction<TInput>();
-            if (output.Bind(client, name, proto))
-                return output;
-            else
-                return null;
+            if (!Bind(client, name, proto))
+                throw new ArgumentOutOfRangeException();
         }
     };
 
@@ -166,13 +163,10 @@ namespace DFHack
         /// <param name="name">Name of the RPC function to bind to</param>
         /// <param name="proto">Name of the protobuf file to use</param>
         /// <returns>Bound remote function on success, otherwise null.</returns>
-        public static RemoteFunction<TInput, TOutput> CreateAndBind(RemoteClient client, string name, string proto = "")
+        public RemoteFunction(RemoteClient client, string name, string proto = "") : base(new TInput(), new TOutput())
         {
-            RemoteFunction<TInput, TOutput> output = new RemoteFunction<TInput, TOutput>();
-            if (output.Bind(client, name, proto))
-                return output;
-            else
-                return null;
+            if (!Bind(client, name, proto))
+                throw new ArgumentOutOfRangeException();
         }
     }
 }
