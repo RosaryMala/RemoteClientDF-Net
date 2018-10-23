@@ -138,7 +138,7 @@ namespace DFHack
                 {
                     tempSocket.Connect(ipe);
                 }
-                catch (SocketException e)
+                catch (SocketException)
                 {
                     // Often thrown if DF is inactive.
                     continue;
