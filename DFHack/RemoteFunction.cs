@@ -75,7 +75,15 @@ namespace DFHack
         public RemoteFunction(RemoteClient client, string name, string proto = ""): base(new TInput(), new EmptyMessage())
         {
             if (!Bind(client, name, proto))
-                throw new ArgumentOutOfRangeException();
+                throw new InvalidOperationException("Cannot bind " + name);
+        }
+
+        public static RemoteFunction<TInput> BindNew(RemoteClient client, string name, string proto = "")
+        {
+            RemoteFunction<TInput> function = new RemoteFunction<TInput>();
+            if (function.Bind(client, name, proto))
+                return function;
+            return null;
         }
     };
 
@@ -162,11 +170,28 @@ namespace DFHack
         /// <param name="client">Connection to Dwarf Fortress</param>
         /// <param name="name">Name of the RPC function to bind to</param>
         /// <param name="proto">Name of the protobuf file to use</param>
-        /// <returns>Bound remote function on success, otherwise null.</returns>
+        /// <returns>Bound remote function on success, otherwise throws an error..</returns>
         public RemoteFunction(RemoteClient client, string name, string proto = "") : base(new TInput(), new TOutput())
         {
             if (!Bind(client, name, proto))
-                throw new ArgumentOutOfRangeException();
+                throw new InvalidOperationException("Cannot bind " + name);
+        }
+
+        /// <summary>
+        /// Tries to bind an RPC function, returning null if it fails.
+        /// </summary>
+        /// <typeparam name="TInput">Protobuf class used as an input</typeparam>
+        /// <typeparam name="TOutput">Protobuf class to use as an output</typeparam>
+        /// <param name="client">Connection to Dwarf Fortress</param>
+        /// <param name="name">Name of the RPC function to bind to</param>
+        /// <param name="proto">Name of the protobuf file to use</param>
+        /// <returns>Bound remote function on success, otherwise null.</returns>
+        public static RemoteFunction<TInput, TOutput> BindNew(RemoteClient client, string name, string proto = "")
+        {
+            RemoteFunction<TInput, TOutput> function = new RemoteFunction<TInput, TOutput>();
+            if (function.Bind(client, name, proto))
+                return function;
+            return null;
         }
     }
 }
