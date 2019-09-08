@@ -192,7 +192,7 @@
         TavernKeeper
     }
 
-    enum ItemType
+    public enum ItemType
     {
         None = -1,
         /**
